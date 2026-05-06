@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎬 Movie Catalog</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --card: #1c1c26;
+      --border: #382a2a;
+      --accent: #47e8aa;
+      --accent2: #ff6b6b;
+      --text: #f0f0f5;
+      --muted: #7a7a95;
+      --success: #4ecca3;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 3px;
+      color: var(--accent);
+    }
+    #movieCount {
+      background: var(--accent);
+      color: #000;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 50px;
+    }
+
+    /* ── Layout ─────────────────────────────── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+
+    .grid { display: grid; grid-template-columns: 380px 1fr; gap: 32px; align-items: start; }
+
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    /* ── Panel (Form) ───────────────────────── */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      position: sticky; top: 90px;
+    }
+    .panel h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 14px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--accent);
+    }
+    .form-group input::placeholder { color: var(--muted); }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 20px;
+      border: none; border-radius: 8px;
+      font-family: inherit; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--accent); color: #000;
+      width: 100%; justify-content: center;
+    }
+    .btn-primary:hover { background: #f5d76e; transform: translateY(-1px); }
+    .btn-cancel {
+      background: var(--border); color: var(--text);
+      width: 100%; justify-content: center; margin-top: 8px;
+    }
+    .btn-cancel:hover { background: #3a3a50; }
+
+    /* ── Movie List ─────────────────────────── */
+    .list-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .list-header h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem; letter-spacing: 2px; color: var(--text);
+    }
+
+    #movieList { display: flex; flex-direction: column; gap: 12px; }
+
+    .movie-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      display: flex; align-items: flex-start; gap: 18px;
+      transition: border-color 0.2s, transform 0.15s;
+      animation: fadeIn 0.3s ease;
+    }
+    .movie-card:hover { border-color: var(--accent); transform: translateX(3px); }
+
+    @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+
+    .movie-rank {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem; color: var(--border);
+      min-width: 40px; text-align: center; line-height: 1;
+      padding-top: 4px;
+    }
+
+    .movie-info { flex: 1; }
+    .movie-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+    .movie-title { font-size: 1.1rem; font-weight: 600; }
+    .movie-genre {
+      font-size: 0.72rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1px;
+      background: rgba(232,197,71,0.15);
+      color: var(--accent); padding: 2px 9px; border-radius: 50px;
+    }
+    .movie-director { font-size: 0.85rem; color: var(--muted); margin-bottom: 10px; }
+    .movie-director span { color: var(--text); font-weight: 500; }
+
+    .movie-meta { display: flex; flex-wrap: wrap; gap: 14px; }
+    .meta-item { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .meta-item strong { color: var(--text); }
+
+    /* Rating stars + inline edit */
+    .rating-display { display: flex; align-items: center; gap: 8px; }
+    .stars { color: var(--accent); font-size: 0.9rem; }
+    .inline-edit {
+      display: none; align-items: center; gap: 6px;
+    }
+    .inline-edit input {
+      width: 60px; background: var(--surface);
+      border: 1px solid var(--accent); border-radius: 6px;
+      color: var(--text); padding: 3px 8px; font-size: 0.8rem; outline: none;
+    }
+    .inline-edit .save-btn {
+      background: var(--success); color: #000; border: none;
+      border-radius: 5px; padding: 3px 8px; cursor: pointer; font-size: 0.75rem; font-weight: 700;
+    }
+    .editing .rating-display { display: none; }
+    .editing .inline-edit { display: flex; }
+
+    /* Actions */
+    .movie-actions { display: flex; flex-direction: column; gap: 6px; }
+    .btn-edit {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); padding: 7px 14px; border-radius: 7px;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-edit:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-delete {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--muted); padding: 7px 14px; border-radius: 7px;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-delete:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(255,107,107,0.06); }
+
+    /* ── Toast ──────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 28px; right: 28px;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text); padding: 14px 22px;
+      border-radius: var(--radius); font-size: 0.9rem;
+      opacity: 0; transform: translateY(12px);
+      transition: all 0.3s; pointer-events: none; z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: none; }
+    #toast.success { border-color: var(--success); color: var(--success); }
+    #toast.error { border-color: var(--accent2); color: var(--accent2); }
+
+    /* ── Empty State ────────────────────────── */
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--muted);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state p { font-size: 1rem; }
+
+    /* ── Loading ────────────────────────────── */
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🎬 Movie Catalog</h1>
+  <span id="movieCount">0 films</span>
+</header>
+
+<div class="container">
+  <div class="grid">
+
+    <!-- ── ADD / EDIT FORM ─────────────────── -->
+    <aside class="panel">
+      <h2 id="formTitle">Add New Movie</h2>
+      <input type="hidden" id="editId" />
+
+      <div class="form-group">
+        <label>Title *</label>
+        <input type="text" id="title" placeholder="e.g. Race 3" />
+      </div>
+      <div class="form-group">
+        <label>Director *</label>
+        <input type="text" id="director" placeholder="e.g. ekta kapoor" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Genre</label>
+          <select id="genre">
+            <option value="">— Select —</option>
+            <option>Action</option><option>Adventure</option>
+            <option>Animation</option><option>Comedy</option>
+            <option>Crime</option><option>Documentary</option>
+            <option>Drama</option><option>Fantasy</option>
+            <option>Horror</option><option>Mystery</option>
+            <option>Romance</option><option>Sci-Fi</option>
+            <option>Thriller</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Language</label>
+          <input type="text" id="language" placeholder="English" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Release Year</label>
+          <input type="number" id="releaseYear" placeholder="2024" min="1888" max="2099" />
+        </div>
+        <div class="form-group">
+          <label>Duration (min)</label>
+          <input type="number" id="duration" placeholder="120" min="1" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Rating (0 – 10)</label>
+        <input type="number" id="rating" placeholder="8.5" min="0" max="10" step="0.1" />
+      </div>
+
+      <button class="btn btn-primary" onclick="submitForm()">
+        <span id="btnIcon">＋</span> <span id="btnText">Add Movie</span>
+      </button>
+      <button class="btn btn-cancel" id="cancelBtn" onclick="resetForm()" style="display:none;">
+        ✕ Cancel Edit
+      </button>
+    </aside>
+
+    <!-- ── MOVIE LIST ──────────────────────── -->
+    <main>
+      <div class="list-header">
+        <h2>All Movies</h2>
+      </div>
+      <div id="movieList"><div class="loading">Loading movies…</div></div>
+    </main>
+
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toast"></div>
+
+<script>
+  const API = '/api/movies';
+
+  // ── Fetch & Render ────────────────────────────────
+  async function loadMovies() {
+    try {
+      const res = await fetch(API);
+      const { data } = await res.json();
+      renderMovies(data);
+    } catch (e) {
+      showToast('Failed to load movies', 'error');
+    }
+  }
+
+  function renderMovies(movies) {
+    const list = document.getElementById('movieList');
+    document.getElementById('movieCount').textContent =
+      movies.length === 1 ? '1 film' : `${movies.length} films`;
+
+    if (!movies.length) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🎞️</div>
+          <p>No movies yet. Add your first film!</p>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = movies.map((m, i) => `
+      <div class="movie-card" id="card-${m._id}">
+        <div class="movie-rank">${String(i + 1).padStart(2, '0')}</div>
+        <div class="movie-info">
+          <div class="movie-title-row">
+            <span class="movie-title">${esc(m.title)}</span>
+            ${m.genre ? `<span class="movie-genre">${esc(m.genre)}</span>` : ''}
+          </div>
+          <div class="movie-director">Directed by <span>${esc(m.director)}</span></div>
+          <div class="movie-meta">
+            ${m.releaseYear ? `<span class="meta-item">📅 <strong>${m.releaseYear}</strong></span>` : ''}
+            ${m.duration   ? `<span class="meta-item">⏱ <strong>${m.duration} min</strong></span>` : ''}
+            <span class="meta-item">🌐 <strong>${esc(m.language || 'English')}</strong></span>
+            <span class="meta-item" id="rating-wrap-${m._id}">
+              <span class="rating-display">
+                ⭐ <strong>${m.rating != null ? m.rating : '—'}</strong>
+                <span class="stars">${starBar(m.rating)}</span>
+                <button class="btn-edit" style="font-size:0.7rem;padding:2px 8px"
+                  onclick="toggleInlineEdit('${m._id}', ${m.rating})">✏️ Edit</button>
+              </span>
+              <span class="inline-edit" id="inline-${m._id}">
+                <input type="number" id="ratingInput-${m._id}" min="0" max="10" step="0.1"
+                  value="${m.rating ?? ''}" placeholder="0–10" />
+                <button class="save-btn" onclick="saveRating('${m._id}')">Save</button>
+                <button class="btn-edit" style="font-size:0.7rem;padding:2px 8px"
+                  onclick="toggleInlineEdit('${m._id}')">✕</button>
+              </span>
+            </span>
+          </div>
+        </div>
+        <div class="movie-actions">
+          <button class="btn-edit" onclick="startEdit(${JSON.stringify(m).replace(/"/g,'&quot;')})">Edit</button>
+          <button class="btn-delete" onclick="deleteMovie('${m._id}', '${esc(m.title)}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ── Star Bar helper ───────────────────────────────
+  function starBar(rating) {
+    if (rating == null) return '';
+    const filled = Math.round(rating / 2);
+    return '★'.repeat(filled) + '☆'.repeat(5 - filled);
+  }
+
+  // ── Add / Update ──────────────────────────────────
+  async function submitForm() {
+    const editId = document.getElementById('editId').value;
+    const body = {
+      title:       document.getElementById('title').value.trim(),
+      director:    document.getElementById('director').value.trim(),
+      genre:       document.getElementById('genre').value,
+      language:    document.getElementById('language').value.trim() || 'English',
+      releaseYear: parseInt(document.getElementById('releaseYear').value) || undefined,
+      duration:    parseInt(document.getElementById('duration').value)    || undefined,
+      rating:      parseFloat(document.getElementById('rating').value)    || undefined,
+    };
+
+    if (!body.title || !body.director) {
+      showToast('Title and Director are required!', 'error'); return;
+    }
+
+    try {
+      const url    = editId ? `${API}/${editId}` : API;
+      const method = editId ? 'PUT' : 'POST';
+      const res    = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      showToast(editId ? `"${body.title}" updated!` : `"${body.title}" added!`, 'success');
+      resetForm();
+      loadMovies();
+    } catch (e) {
+      showToast(e.message || 'Error saving movie', 'error');
+    }
+  }
+
+  // ── Edit (populate form) ──────────────────────────
+  function startEdit(movie) {
+    document.getElementById('editId').value      = movie._id;
+    document.getElementById('title').value       = movie.title;
+    document.getElementById('director').value    = movie.director;
+    document.getElementById('genre').value       = movie.genre || '';
+    document.getElementById('language').value    = movie.language || 'English || Hindi';
+    document.getElementById('releaseYear').value = movie.releaseYear || '';
+    document.getElementById('duration').value    = movie.duration || '';
+    document.getElementById('rating').value      = movie.rating ?? '';
+    document.getElementById('formTitle').textContent = 'Edit Movie';
+    document.getElementById('btnIcon').textContent  = '✎';
+    document.getElementById('btnText').textContent  = 'Update Movie';
+    document.getElementById('cancelBtn').style.display = 'flex';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function resetForm() {
+    ['editId','title','director','language','releaseYear','duration','rating']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('genre').value = '';
+    document.getElementById('formTitle').textContent = 'Add New Movie';
+    document.getElementById('btnIcon').textContent = '＋';
+    document.getElementById('btnText').textContent = 'Add Movie';
+    document.getElementById('cancelBtn').style.display = 'none';
+  }
+
+  // ── Delete ────────────────────────────────────────
+  async function deleteMovie(id, title) {
+    if (!confirm(`Delete "${title}"?`)) return;
+    try {
+      const res  = await fetch(`${API}/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      showToast(data.message, 'success');
+      loadMovies();
+    } catch (e) {
+      showToast(e.message || 'Error deleting', 'error');
+    }
+  }
+
+  // ── Inline Rating Edit ────────────────────────────
+  function toggleInlineEdit(id, current) {
+    const wrap = document.getElementById(`rating-wrap-${id}`);
+    wrap.classList.toggle('editing');
+  }
+
+  async function saveRating(id) {
+    const val = parseFloat(document.getElementById(`ratingInput-${id}`).value);
+    if (isNaN(val) || val < 0 || val > 10) {
+      showToast('Rating must be 0–10', 'error'); return;
+    }
+    try {
+      const res  = await fetch(`${API}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: val })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      showToast('Rating updated!', 'success');
+      loadMovies();
+    } catch (e) {
+      showToast(e.message || 'Error updating rating', 'error');
+    }
+  }
+
+  // ── Toast ─────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+  }
+
+  // ── Escape HTML ───────────────────────────────────
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Init ──────────────────────────────────────────
+  loadMovies();
+</script>
+</body>
+</html>
